@@ -1,0 +1,6 @@
+
+#실습 iris dataset 이용 subset 생성
+
+iris
+str(iris) #데이터셋 구조보기
+
