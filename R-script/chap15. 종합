@@ -1,0 +1,722 @@
+######################################################
+# 회귀분석(Regression Analysis)
+######################################################
+# - 특정 변수(독립변수:설명변수)가 다른 변수(종속변수:반응변수)에 어떠한 영향을 미치는가 분석
+
+###################################
+## 1. 단순회귀분석 
+###################################
+# - 독립변수와 종속변수가 1개인 경우
+
+# 단순선형회귀 모델 생성  
+# 형식) lm(formula= y ~ x 변수, data) 
+
+###################################################################################################################
+### 【단순 회귀분석 가설】
+### 음료수 제품의 당도와 가격수준을 결정하는 제품적절성(독립변수)은 제품만족도(종속변수)에 정(+)의 영향을 미칠 것이다.
+###################################################################################################################
+setwd("C:/ITWILL/2_Rwork/Part-iv")
+product <- read.csv("product.csv", header=TRUE)
+head(product) # 친밀도 적절성 만족도(등간척도 - 5점 척도)
+
+str(product) # 'data.frame':  264 obs. of  3 variables:
+y = product$'제품_만족도' # 종속변수
+x = product$'제품_적절성' # 독립변수
+df <- data.frame(x, y)
+
+# 회귀모델 생성 리니어 모델 
+#lm(formula=y~X,data)
+
+result.lm <- lm(formula=y ~ x, data=df)
+result.lm # 회귀계수 
+
+# Coefficients(회귀계수):
+#   (Intercept)            x  
+# 0.7789(y절편)               0.7393 (x에 대한 기울기)
+
+
+
+#회귀 방정식 (y)=a.x+b(a: 기울기, b= y절편) y=0.7393x+0.7789 (선형관계에서만 사용. 1차함수/(2차 함수는 비선형관계))
+head(df) 
+#   x y
+# 1 4 3
+# 2 3 2
+# 3 4 4
+# 4 2 2
+# 5 2 2
+# 6 3 3
+
+X <-4 #입력변수 
+Y <-3 #모델에 의해 만들어진 정답
+a <-0.7393
+b <-0.7789
+
+y <-a*x+b
+cat('y예측지=',y의 예측지)
+#3.37361
+
+err <- y-Y #오차 잔차 
+
+cat('model error =', err)  #mode error = 0.7361 오차가 작다는 것은 좋은 모델 
+
+
+names(result.lm)
+# [1] "coefficients" : 회귀 계수  "residuals" : 오차(잔차)          "effects"      
+# [4] "rank"                         "fitted.values": 적합치 (예측치) "assign"       
+# [7] "qr"                            "df.residual"                         "xlevels"      
+# [10] "call"                          "terms"                            "model
+
+result.lm$coefficients
+# 
+# (Intercept)           x 
+# 0.7788583         0.7392762 
+result.lm$residuals #첫번째 관측치의 오차만 본다.    -0.73596305 
+result.lm$fitted.values #첫번째 관측치의 오차만 본다. 3.735963 회귀 방정식으로 나온 값과 같다. 
+
+
+# 회귀모델 예측 
+# y <- predict(model,x) 제품의 적절성 =x(5점 척도에서 5점  만점을 넣어봄)
+predict(result.lm, data.frame(x=5) )
+#4.475239 반환된 함수의 의미  
+
+# (2) 선형회귀 분석 결과 보기 (가장 중요: 영향을 미치는지, 미친다면 영향력은 얼마나, 회귀 모델결과)
+summary(result.lm) #요약통계+적합한 예측치를 보여준다. x->y
+
+# <<해석 순서>>
+#1. F-statistic에 의한 p-value <0.05 (유의하다) 
+#2. Adjusted R-squared: 0.5865 (예측력: 모델의 설명력) (%와 같다, 1에 가까울수록 좋다/ 해석 : 58%의 예측력)
+#3. x의 유의성 검정 : t value (-1.96~+1.96사이 채택), p-value <0.05 유의(기각)하려면 채택력을 벗어나야함. 
+t value클수록 강한 영향력
+# 2번의 R-squared는 상관분석 피어슨의 제곱
+
+cor(df) #0.7668527
+
+
+#      x         y
+# x 1.0000000 0.7668527
+# y 0.7668527 1.0000000
+r <- 0.7668527
+r_squared <-r**2
+r_squared  #0.5880631 #Adjusted R-squared
+
+# Residuals:
+#   Min       1Q     Median       3Q      Max 
+# -1.99669 -0.25741  0.00331  0.26404  1.26404 
+# 
+# Coefficients:
+#              Estimate Std. Error(표준오차) t value                                Pr(>|t|)    
+# (Intercept)  0.77886    0.12416             6.273 (-1.96~1.96사이 채택)           1.45e-09 ***  
+#   x         0.73928    0.03823              19.340                                < 2e-16 *** 0이 16개 0에 가까움. 
+#   ---
+#   Signif. codes:  
+#   0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.5329 on 262 degrees of freedom
+# Multiple R-squared:  0.5881,	Adjusted R-squared:  0.5865 
+# F-statistic:   374 on 1 and 262 DF,  p-value: < 2.2e-16
+
+# <<해석 순서>> F-statistic:   374 on 1 and 262 DF,  p-value: < 2.2e-16
+
+
+# (3) 단순선형회귀 시각화
+# x,y 산점도 그리기 
+plot(formula=y ~ x, data=df, xlim=c(0.5), ylim=c(0.5))
+
+# 회귀분석
+
+result.lm <- lm(formula=y ~ x, data=df)
+
+# 회귀선 (y절편 0.7789,1차 함수)
+abline(result.lm, col='red')
+
+result.lm$coefficients
+# (Intercept)           x 
+# 0.7788583         0.7392762 
+
+y <-product$'제품_만족도'
+x <-product$'제품_적절성'
+
+
+# x 기울기 =Covxy / sxx
+Covxy= mean((x-mean(x)) *(y-mean(y))) #x편차에 따른 제곱
+sxx= mean((X-mean(x))**2)
+a=Covxy/sxx
+a #0.7392762 coefficients을 근거로 구해짐
+
+
+#y절편 
+b<- mean(y)-(a*mean(x))#절편, 기울기가 나와야 절편 y산술평균에 x산술평균을 뺀다
+b #0.7788583
+
+###################################
+## 2. 다중회귀분석
+###################################
+# - 여러 개의 독립변수 -> 종속변수에 미치는 영향 분석
+# 가설 : 음료수 제품의 적절성(x1)과 친밀도(x2)는 제품 만족도(y)에 정의 영향을 미친다.
+#######################################################################################
+#【다중 회귀분석 가설】
+#음료수 제품의 적절성과 친밀도가 높을 수록 제품 만족도(종속변수)도 높아질 것이다.
+#######################################################################################
+
+
+product <- read.csv("product.csv", header=TRUE)
+head(product) # 친밀도 적절성 만족도(등간척도 - 5점 척도)
+
+
+#(1) 변수 선택 : 적절성 + 친밀도 -> 만족도  
+y = product$'제품_만족도' # 종속변수
+x1 = product$'제품_친밀도' # 독립변수1
+x2 = product$'제품_적절성' # 독립변수2
+
+df <- data.frame(x1, x2, y)
+
+result.lm <- lm(formula=y ~ x1 + x2, data=df)
+#result.lm <- lm(formula=y ~ ., data=df)                  #.,이란? y를 제외한 나머지를 x로 사용
+
+# 계수 확인 
+result.lm
+x가 2개 이면 기울기가 2개 나올 수 있다.
+
+
+#Coefficients:
+#(Intercept)           x1           x2  
+#0.66731               0.09593      0.68522 
+
+b <-0.66731 
+a1 <-0.09593  
+a2 <-0.68522 
+head(df)
+x1 <-3
+x2 <-4
+
+#다중 회귀 방정식 
+y=(a1*x1+a2*x2)+b #행렬곱: 곱의 합을 이용한 함수.dot함수 안에 x변수를 쓰고 기울기 a를 써서 +절편으로 사용. y=dot(a*x1+b), 변수가 10개 이상의 많은때 사용 
+y #3.6958
+Y=3
+err =Y-y #부호는 상관없습니다. 절대값으로 표현
+abs(err) #절대값  3
+
+#분석 결과 확인
+summary(result.lm)
+
+#해석
+#1.  F-statistic: p-value: < 2.2e-16 <0.05 유의성 있다
+#2. Adjusted R-squared:  0.5945 
+#3. x 유의성 검정 
+# x1            2.478   0.0138 *    > 친밀도 
+# x2            15.684  < 2e-16 *** > 적절성
+
+#친밀도 보다는 적절성이 더 유의미하다. 
+
+
+# Coefficients:
+#   Estimate                     Std.     Error        t value       Pr(>|t|)    
+# (Intercept)                 0.66731    0.13094         5.096     6.65e-07 ***
+#   x1                        0.09593    0.03871         2.478     0.0138 *  
+#   x2                        0.68522    0.04369       15.684    < 2e-16 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+install.packages('car') #다중공선성 문제 확인 
+library(car)
+
+Prestige #직업군에 대한 평판 102개 dataset
+str(Prestige)
+# 'data.frame':	102 obs. of  6 variables:
+# $ education교육수준(x1): num  13.1 12.3 12.8 11.4 14.6 ...
+# $ income   수입(y): int  12351 25879 9271 8865 8403 11030 8258 14163 11377 11023 ...
+# $ women    여성 비율(x2): num  11.16 4.02 15.7 9.11 11.68 ...
+# $ prestige 평판(x3): num  68.8 69.1 63.4 56.8 73.5 77.6 72.6 78.1 73.1 68.8 ...
+# $ census   직업수 : int  1113 1130 1171 1175 2111 2113 2133 2141 2143 2153 ...
+# $ type     : Factor w/ 3 levels "bc","prof","wc": 2 2 2 2 2 2 2 2 2 2 ... 본래 문자타입으로 숫자타입의 변수로 사용 불가 
+row.names(Prestige)
+
+df <- Prestige[,c(1:4)] #4개의 칼럼을 뽑아 데이터 프레임 
+str(df)
+lm(formula=income~.,data=df)
+
+model <- lm(formula=income~.,data=df)
+model 
+
+summary(model)
+
+# Coefficients:
+# Estimate      Std.      Error     t value Pr(>|t|)    
+# (Intercept)  -253.850   1086.157  -0.234    0.816    
+# education     177.199    187.632   0.944    0.347     # 0.944 채택(-1.96~+1.96사이 채택), 유의미 하지 않다 (상관없음)
+# women         -50.896      8.556  -5.948 4.19e-08 ***유의미 수준에서 영향을 미친다.(t value: 음의 상관)
+# prestige     141.435     29.910   4.729 7.58e-06 *** 유의미 수준에서 영향을 미친다.(양의 상관)
+
+0.6323 -> 63%
+
+res<- model$residuals #잔차(오차)=정답- 예측치
+summary(res_ scale)
+length(res) #102
+
+mean(res) #1.704083e-14 (0에 수렴)
+
+#MSE : 표준화 전
+mse <- mean(res**2) #평균제곱 오차 
+cat('MSE=',mse) #표준화 전 #6369159
+
+#잔차 표준화 
+res scale <- scale #sd=1 mean=(0, sd=1)
+summary(res_ scale)
+
+#MSE : 표준화 : 잔차를 평균치 오차에적용하여 알아봄
+mse <- mean(res**2) #0에 가까울수록 좋다 #평균제곱 오차 
+cat('MSE=',mse) #6369159
+#MSE=0.9901961 :표준화 후 
+
+#제곱 : 부호 절대값 패널티
+#평균 : 전체 오차에 대한 평균
+
+
+#################################
+##3. x 변수 선택 
+#################################
+# $ education
+# $ income  
+# $ women    
+# $ prestige 
+# $ census   
+# $ type  
+
+#변수 선택과 예측력
+new_data <- Prestige [,c(1:5)]
+dim(new_data) #102   5
+library(MASS)
+stepAIC(model2)
+
+model2=lm(income~., data=new_data)
+
+step <- stepAIC(model2,direction = 'both') #최적의 변수 선택을 알려준다
+
+########################################
+# step <- stepAIC(model2,direction = 'both')
+# Start:  AIC=1607.93 지수가 낮으면 좋다고 본다
+# income ~ education + women + prestige + census
+# 
+# Df Sum of Sq       RSS    AIC
+# - census     1    639658 649654265 1606.0
+# - education  1   5558323 654572930 1606.8
+# <none>                   649014607 1607.9
+# - prestige   1 143207106 792221712 1626.3
+# - women      1 212639294 861653901 1634.8
+# 
+# Step:  AIC=1606.03
+# income ~ education + women + prestige
+# 
+# Df Sum of Sq       RSS    AIC
+# - education  1   5912400 655566665 1605.0
+# <none>                   649654265 1606.0
+# + census     1    639658 649014607 1607.9
+# - prestige   1 148234959 797889223 1625.0
+# - women      1 234562232 884216497 1635.5
+# 
+# Step:  AIC=1604.96 지수가 가장 낮다. 선정 
+# income ~ women + prestige
+# 
+# Df Sum of Sq        RSS    AIC
+# <none>                    655566665 1605.0
+# + education  1   5912400  649654265 1606.0
+# + census     1    993735  654572930 1606.8
+# - women      1 234647032  890213697 1634.2
+# - prestige   1 811037947 1466604612 1685.1
+# > 
+##############################################################
+model3<-lm(income~women + prestige , data=new_data)
+model3
+summary(model3)
+
+#Adjusted R-squared:  0.6327 
+#변수의 선택 stepAIC 참조한다
+#0.6327 vs 0.6327 
+
+###################################
+# 4. 다중공선성(Multicolinearity)
+###################################
+# - 독립변수 간의 강한 상관관계로 인해서 회귀분석의 결과를 신뢰할 수 없는 현상
+# - 생년월일과 나이를 독립변수로 갖는 경우
+# - 해결방안 : 강한 상관관계를 갖는 독립변수 제거
+
+# (1) 다중공선성 문제 확인
+library(car)
+fit <- lm(formula=Sepal.Length ~ Sepal.Width+Petal.Length+Petal.Width, data=iris)
+vif(fit)
+
+# Sepal.Width Petal.Length  Petal.Width 
+# 1.270815    15.097572    14.234335 
+
+sqrt(vif(fit))>2 # root(VIF)가 2 이상인 것은 다중공선성 문제 의심 
+# Sepal.Width Petal.Length  Petal.Width 
+# FALSE         TRUE         TRUE 
+
+
+# (2) iris 변수 간의 상관계수 구하기
+cor(iris[,-5]) # 변수간의 상관계수 보기(Species 제외) 
+# 
+# Sepal.Length Sepal.Width Petal.Length Petal.Width
+# Sepal.Length    1.0000000  -0.1175698    0.8717538   0.8179411
+# Sepal.Width    -0.1175698   1.0000000   -0.4284401  -0.3661259
+# Petal.Length    0.8717538  -0.4284401    1.0000000   0.9628654 (높은 상관관계)
+# Petal.Width     0.8179411  -0.3661259    0.9628654   1.0000000
+
+
+#Petal.Length+Petal.Width
+
+#x변수 들끼 계수값이 높을 수도 있다. -> 해당 변수 제거(모형 수정) <- Petal.Width
+
+# (3) 학습데이터와 검정데이터 분류 : 기계학적 측면
+nrow(iris) #150
+x <- sample(1:nrow(iris), 0.7*nrow(iris)) # 전체중 70%만 추출
+train <- iris[x, ] # 학습데이터 추출 : 모뎀이 데이터에 대해 학습하여 함수식을 적용 
+#설명 head(train)
+Sepal.Length인 y값은 정답에 해당 
+
+test <- iris[-x, ] # 검정데이터 추출
+dim(train) #105   5
+dim(test) # 45  5 #모델 검정
+
+# (4) Petal.Width 변수를 제거한 후 회귀분석 
+result.model<- lm(formula=Sepal.Length ~ Sepal.Width + Petal.Length, data=train) 학습에 사용되지 않은 나머지 추출하여 테스트 
+result.model
+# Call:
+#   lm(formula = Sepal.Length ~ Sepal.Width + Petal.Length, data = train)
+# 
+# Coefficients:
+#   (Intercept)   Sepal.Width  Petal.Length  
+# 2.2739        0.5983        0.4622 
+
+library(iris)
+iris_model <- lm(formula = Sepal.Length~Sepal.Width+ Petal.Length, data=train )
+summary(iris_model)
+
+
+#(5) model예측치 : test set
+y_pred <- predict(iris_model,test)
+y_pred
+length(y_pred) #45
+
+y_true <- test$Sepal.Length
+
+#(6)model평가 :MSE, cor
+# MSE(표준화o)
+Error <- y_true - y_pred 
+mse <- mean(Error**2)
+cat('MSE=',mse) #MSE=0.09154192
+
+#상관계수 r :표준화(X)
+r <- cor(y_true,y_pred)
+cat('r=',r) #r=0.9317594 (1에 가까울 수록 상관성이 높다)
+
+y_pred[1:10]
+y_true[1:10] 
+
+
+#시각화 평가 
+plot(y_true, col='blue', type='l') 
+points(y_pred, col='red', type='l')
+#범례 추가 
+legend("topleft", legend=c('y true','y pred'),
+       col=c('blue','red'),pch='-')
+
+##########################################
+##  5. 선형회귀분석 잔차검정과 모형진단
+##########################################
+
+# 1. 변수 모델링  : x,y 변수 선정
+# 2. 회귀모델 생성: lm()
+# 3. 모형의 잔차검정 
+#   1) 잔차의 등분산성 검정
+#   2) 잔차의 정규성 검정 
+#   3) 잔차의 독립성(자기상관) 검정 
+# 4. 다중공선성 검사 
+# 5. 회귀모델 생성/ 평가 
+
+
+names(iris)
+
+# 1. 변수 모델링 : y:Sepal.Length <- x:Sepal.Width,Petal.Length,Petal.Width
+formula = Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width
+
+
+# 2. 회귀모델 생성 
+model <- lm(formula = formula,  data=iris)
+model
+names(model)
+
+
+# 3. 모형의 잔차검정
+plot(model)
+#Hit <Return> to see next plot: 잔차 vs 적합값 -> 패턴없이 무작위 분포(포물선 분포 좋지않은 적합) :등분산성
+#Hit <Return> to see next plot: Normal Q-Q -> 정규분포 : 대각선이면 잔차의 정규성 
+#Hit <Return> to see next plot: 척도 vs 위치 -> 중심을 기준으로 고루 분포 
+#Hit <Return> to see next plot: 잔차 vs 지렛대값 -> 중심을 기준으로 고루 분포 
+
+# (1) 등분산성 검정 
+plot(model, which =  1) 
+methods('plot') # plot()에서 제공되는 객체 보기 
+
+# (2) 잔차 정규성 검정
+attributes(model) # coefficients(계수), residuals(잔차), fitted.values(적합값)
+res <- residuals(model) # 잔차 추출
+res <- model$residuals # 잔차 추출
+shapiro.test(res) # 정규성 검정 - p-value = 0.9349 >= 0.05
+# 귀무가설 : 정규성과 차이가 없다.
+
+# 정규성 시각화  
+hist(res, freq = F) 
+qqnorm(res)
+
+# (3) 잔차의 독립성(자기상관 검정 : Durbin-Watson) 
+install.packages('lmtest')
+library(lmtest) # 자기상관 진단 패키지 설치 
+dwtest(model) # 더빈 왓슨 값
+# data:  model
+# DW = 2.0604(2~4사이면 채택), p-value = 0.6013 >=0.05 0.05이상이면 독립성 검증 /귀무가설 채택/ 상관이 없다
+
+
+# 4. 다중공선성 검사 
+library(car)
+sqrt(vif(model)) > 2 # TRUE 
+
+# 5. 모델 생성/평가 
+formula = Sepal.Length ~ Sepal.Width + Petal.Length 
+model <- lm(formula = formula,  data=iris)
+summary(model) # 모델 평가
+
+###############################################
+# 6.범주형 변수 사용 [예시)category : gender]
+################################################
+#-범주형(gender)변수 -> 더미 변수(1,2) 생성 
+#-범주형 변수 기울기에 영향을 미치지 않고,y절편에만 영향을 준다.
+#-범주형 범주가 n개이면 더미변수 수:n-1
+#ex)혈액형 (AB,A,B,O) - 3개의 변수 
+#         x1      x2         x3
+# A       1       0           0
+# B       0       1           0
+# O       0       0           1
+#AB       0       0           0 (base) 
+
+#Factor 형으로 만들어주는데 더미변수를 만들기 위한 과정 (범주형-> 더미 변수) 12page 
+
+#의료비 예측
+insurance <-read.csv(file.choose())
+head(insurance)
+str(insurance) #base는 0으로 보이지 않음. 
+
+'data.frame':	1338 obs. of  7 variables:
+  $ age     :나이 int  
+$ sex     :성별 Factor 
+$ bmi     :BMI num  
+$ children:자녀수  int  
+$ smoker  :흡연 Factor 
+$ region  :지역 Factor :"northeast","northwest" 4개의 지역 남동 남서 등등 
+$ charges :의료비  num 연속형 -y변수 
+
+# 범주형 변수 : sex(2),  smoker(2), region(4) 
+# 기준(base) :level 1(base)=0, level2=1               자동적으로 더미 변수 생성
+
+#회귀모델 생성
+insurance2 <- insurance[,-c(5:6)] #흡연 , 지역 제외 
+head(insurance2)
+
+ins_model <-lm(charges~.,data=insurance2)
+ins_model
+
+# Coefficients:
+# (Intercept)             sexmale (더미변수 생성 가능)         
+# -7460.0                  1321.7 (남성1의 값만 기울기로 나온다)     
+
+#남성이 여성보다 1321원 더 많이 나온다.
+
+#female=0, male=1   
+#[해석] 여성에 비해서 남성의 의료비가 더 많이 증가된다.
+# y=a*x+b
+y_male=1321.7*1 + ( -7460.0 ) #(남성 =1)
+y_female=1321.7*0+ ( -7460.0 )  #(female =0)
+y_male  #-6138.3
+y_female #-7460
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+로지스틱 회귀분석(Logistic Regression) 
+###############################################
+
+# 목적 : 일반 회귀분석과 동일하게 종속변수와 독립변수 간의 관계를 나타내어 
+# 향후 예측 모델을 생성하는데 있다.
+
+# 차이점 : 종속변수가 범주형 데이터를 대상으로 하며 입력 데이터가 주어졌을 때
+# 해당 데이터의결과가 특정 분류로 나눠지기 때문에 분류분석 방법으로 분류된다.
+# 유형 : 이항형(종속변수가 2개 범주-Yes/No), 다항형(종속변수가 3개 이상 범주-iris 꽃 종류)
+# 다항형 로지스틱 회귀분석 : nnet, rpart 패키지 이용 
+# a : 0.6,  b:0.3,  c:0.1 -> a 분류 
+
+# 분야 : 의료, 통신, 기타 데이터마이닝
+
+# 선형회귀분석 vs 로지스틱 회귀분석 
+# 1. 로지스틱 회귀분석 결과는 0과 1로 나타난다.(이항형)
+# 2. 정규분포 대신에 이항분포를 따른다.
+# 3. 로직스틱 모형 적용 : 변수[-무한대, +무한대] -> 변수[0,1]사이에 있도록 하는 모형 
+#    -> 로짓변환 : 출력범위를 [0,1]로 조정
+# 4. 종속변수가 2개 이상인 경우 더미변수(dummy variable)로 변환하여 0과 1를 갖도록한다.
+#    예) 혈액형 AB인 경우 -> [1,0,0,0] AB(1) -> A,B,O(0)
+
+
+# 단계1. 데이터 가져오기
+weather = read.csv("C:/ITWILL/2_Rwork/Part-IV/weather.csv", stringsAsFactors = F) #factor형 아닌 문자형
+dim(weather)  # 366  15
+head(weather)
+str(weather)
+
+# chr 칼럼, Date, RainToday 칼럼 제거 
+weather_df <- weather[, c(-1, -6, -8, -14)]
+str(weather_df)
+
+# RainTomorrow 칼럼 -> 로지스틱 회귀분석 결과(0,1)에 맞게 더미변수 생성      
+weather_df$RainTomorrow[weather_df$RainTomorrow=='Yes'] <- 1
+weather_df$RainTomorrow[weather_df$RainTomorrow=='No'] <- 0
+weather_df$RainTomorrow <- as.numeric(weather_df$RainTomorrow)
+head(weather_df)
+table(weather_df$RainTomorrow)
+
+# No Yes 
+# 300  66 
+prop.table(table(weather_df$RainTomorrow))
+
+# No       Yes 
+# 0.8196721 0.1803279 
+
+#  단계2.  데이터 셈플링
+idx <- sample(1:nrow(weather_df), nrow(weather_df)*0.7)
+train <- weather_df[idx, ]
+test <- weather_df[-idx, ]
+
+#  단계3. 로지스틱  회귀모델 생성 : 학습데이터 
+weater_model <- glm(RainTomorrow ~ ., data = train, family='binomial')
+weater_model 
+
+# Coefficients:
+#   (Intercept)        MinTemp        MaxTemp       Rainfall  
+# 107.37396       -0.14705        0.21508        0.01214  
+# Sunshine  WindGustSpeed      WindSpeed       Humidity  
+# -0.21173        0.08448       -0.07016        0.05360  
+# Pressure          Cloud           Temp  
+# -0.11382        0.11281       -0.02972  
+
+summary(weater_model) 
+
+
+# Call:
+#   glm(formula = RainTomorrow ~ ., family = "binomial", data = train)
+# 
+# Deviance Residuals: 
+#   Min       1Q   Median       3Q      Max  
+# -1.8356  -0.4704  -0.2721  -0.1579   2.3856  
+# 
+# Coefficients:
+#   Estimate Std. Error z value Pr(>|z|)   
+# (Intercept)   107.37396   46.56185   2.306  0.02111 * 
+#   MinTemp        -0.14705    0.07693  -1.912  0.05593 . 
+# MaxTemp         0.21508    0.20731   1.037  0.29951   
+# Rainfall        0.01214    0.04151   0.292  0.76992   
+# Sunshine       -0.21173    0.11200  -1.891  0.05868 . 
+# WindGustSpeed   0.08448    0.02828   2.987  0.00282 **
+#   WindSpeed      -0.07016    0.04049  -1.733  0.08311 . 
+# Humidity        0.05360    0.02864   1.871  0.06131 . 
+# Pressure       -0.11382    0.04501  -2.529  0.01144 * 
+#   Cloud           0.11281    0.11888   0.949  0.34267   
+# Temp           -0.02972    0.22295  -0.133  0.89396   
+# ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# (Dispersion parameter for binomial family taken to be 1)
+# 
+# Null deviance: 223.48  on 250  degrees of freedom
+# Residual deviance: 147.91  on 240  degrees of freedom
+# (5 observations deleted due to missingness)
+# AIC: 169.91
+# 
+# Number of Fisher Scoring iterations: 6
+
+
+# 단계4. 로지스틱  회귀모델 예측치 생성 : 검정데이터 
+# newdata=test : 새로운 데이터 셋, type="response" : 0~1 확률값으로 예측 
+pred <- predict(weater_model, newdata=test, type="response")  #y가 나오는 확률값으로 예측
+pred 
+range(pred, na.rm=T) #0.002052574   0.994663959
+summary(pred)
+# Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+# 0.007581 0.030323 0.077119 0.206927 0.241922 0.996808 
+str(pred)
+# Named num [1:110] 0.9968 0.0707 0.0531 0.0235 0.3566 ...
+# - attr(*, "names")= chr [1:110] "3" "8" "12" "13" ...
+
+#cut off =0.5
+cpred <- ifelse(pred>=0.5,1,0)
+table(cpred)
+cpred
+# 0 1
+# 98 10  => 108은 366개의 30%정도 
+
+y_true <- test$RainTomorrow
+
+#교차 분할표
+table(y_true, cpred)
+#cpred
+# y_true 0  1    0: 오지 않음 1: 옴
+#    0  83  3   86개 
+#    1  15  7   22개
+length(test) #11
+#정분류 83+7   / length(test) 
+acc<-(83,7) /nrow(test)
+nrow(test) #110
+
+acc<-90/110
+acc
+
+acc<-(83,7)/nrow(test)
+cat('accuracy=', acc)
+#accuracy= 0.8181818 약 82%확률
+
+no<-83/(83+3)
+no #0.9651163
+
+yes <- 7/(15+7)
+yes #0.3181818
+
+#오분류 15+3
+
+### ROC Curve를 이용한 모형평가(분류정확도)  ####
+# Receiver Operating Characteristic
+
+install.packages("ROCR")
+library(ROCR)
+
+# ROCR 패키지 제공 함수 : prediction() -> performance
+pr <- prediction(pred, test$RainTomorrow)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)

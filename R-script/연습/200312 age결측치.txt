@@ -1,0 +1,23 @@
+      # example) 1-4  age 결측치 - 각 한년별 평균으로 대체
+   
+      age = round(runif(12,20,25))
+      age   
+      grade = rep(14, 3)
+      grade
+      age[5] = NA
+      age[8] = NA
+         
+      df = data.frame(Age = age, Grade = grade)   
+      df
+
+      mean(filter(df, Grade == 1)$Age, na.rm=T)
+      i=1
+      for(i in 1nrow(df)){
+         if(is.na(df$Age[i])){
+            temp_grade = df$Grade[i]
+            temp = mean(filter(df, Grade == df$Grade[i])$Age, na.rm=T)
+            df$Age[i] = round(temp)
+         }
+      }
+      
+   df  
